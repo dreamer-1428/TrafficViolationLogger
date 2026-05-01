@@ -2,9 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Management System</title>
+    <style>
+        /* Cinematic Noir Style */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .dashboard-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+
+        /* Header & Actions */
+        .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #2c3e50; padding-bottom: 15px; }
+        .search-box { display: flex; gap: 10px; }
+        .search-box input { padding: 10px; width: 300px; border: 1px solid #ddd; border-radius: 6px; }
+
+        /* Buttons */
+        .btn { padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: 600; cursor: pointer; border: none; font-size: 14px; display: inline-block; }
+        .btn-log { background-color: #2c3e50; color: white; }
+        .btn-search { background-color: #34495e; color: white; }
+        .btn-view { border: 1px solid #3498db; color: #3498db; background: transparent; }
+        .btn-pay { background-color: #27ae60; color: white; }
+
+        /* Table Style */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #2c3e50; color: white; padding: 15px; text-align: left; text-transform: uppercase; font-size: 13px; }
+        td { padding: 15px; border-bottom: 1px solid #eee; color: #444; }
+        tr:hover { background-color: #fcfcfc; }
+
+        /* Badges */
+        .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .unpaid { background-color: #e74c3c; color: white; }
+        .paid { background-color: #2ecc71; color: white; }
+    </style>
 </head>
 <body>
+
+<div class="dashboard-container">
+    <div class="header-section">
+        <h2>Traffic Violation Control</h2>
+        <a href="/add" class="btn btn-log">+ Log New Violation</a>
+    </div>
+
+    <form action="/" method="GET" class="search-box">
+        <input type="text" name="search" placeholder="Search Vehicle Number (e.g., TN-45)..." value="{{ request.args.get('search', '') }}">
+        <button type="submit" class="btn btn-search">Search Records</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Vehicle No</th>
+                <th>Violation Type</th>
+                <th>Location</th>
+                <th>Fine (₹)</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in violations %}
+            <tr>
+                <td><strong>{{ row[1] }}</strong></td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>
+                    <span class="status-badge {{ 'paid' if row[5] == 'Paid' else 'unpaid' }}">
+                        {{ row[5] }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('view_challan', id=row[0]) }}" class="btn btn-view">View / QR</a>
+                    {% if row[5] == 'Unpaid' %}
+                    <a href="{{ url_for('pay_challan', id=row[0]) }}" class="btn btn-pay">Pay Now</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 </body>
 </html>

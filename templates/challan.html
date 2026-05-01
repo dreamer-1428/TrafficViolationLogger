@@ -2,42 +2,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Digital Challan</title>
+    <title>Traffic Violation Challan</title>
     <style>
-        @media print { .no-print { display: none; } }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 40px; }
+        .challan-card { background: white; padding: 0; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); width: 450px; overflow: hidden; }
+        .header { background: #2c3e50; color: white; padding: 20px; text-align: center; }
+        .content { padding: 30px; text-align: center; }
+        .details { text-align: left; margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; }
+        .label { font-weight: 600; color: #7f8c8d; }
+        .value { color: #2c3e50; font-weight: 500; }
+
+        /* Payment Verified Styling */
+        .verified-badge { color: #27ae60; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+        .btn-pay { background: #27ae60; color: white; padding: 12px; width: 100%; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: block; margin-top: 20px; }
+        .btn-back { display: block; margin-top: 15px; color: #3498db; text-decoration: none; font-size: 14px; }
     </style>
 </head>
-<body class="bg-light">
-    <div class="container mt-5">
-        <div class="card shadow mx-auto" style="max-width: 500px;">
-            <div class="card-header bg-dark text-white text-center">
-                <h4 class="mb-0">Traffic Violation Challan</h4>
-            </div>
-            <div class="card-body text-center">
-                <div class="mb-4">
-                    <img src="{{ url_for('static', filename=qr_filename) }}" alt="QR Code" class="img-fluid border p-2" style="width: 200px;">
-                    <p class="text-muted mt-2">Scan to verify violation details</p>
-                </div>
+<body>
 
-                <ul class="list-group list-group-flush text-start">
-                    <li class="list-group-item"><strong>Vehicle Number:</strong> {{ violation.vehicle_number }}</li>
-                    <li class="list-group-item"><strong>Violation:</strong> {{ violation.violation_type }}</li>
-                    <li class="list-group-item"><strong>Location:</strong> {{ violation.location }}</li>
-                    <li class="list-group-item"><strong>Date:</strong> {{ violation.date }}</li>
-                    <li class="list-group-item"><strong>Fine Amount:</strong> ₹{{ violation.fine_amount }}</li>
-                    <li class="list-group-item"><strong>Status:</strong>
-                        <span class="badge {% if violation.status == 'Unpaid' %}bg-danger{% else %}bg-success{% endif %}">
-                            {{ violation.status }}
-                        </span>
-                    </li>
-                </ul>
-            </div>
-            <div class="card-footer d-flex justify-content-between no-print">
-                <a href="/" class="btn btn-secondary">Back</a>
-                <button onclick="window.print()" class="btn btn-primary">Print Receipt</button>
+<div class="challan-card">
+    <div class="header">
+        <h2 style="margin:0;">Violation Challan</h2>
+    </div>
+
+    <div class="content">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=ChallanID:{{violation[0]}}|Vehicle:{{violation[1]}}" alt="QR Code">
+
+        {% if violation[5] == 'Paid' %}
+        <div class="verified-badge">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+            PAYMENT VERIFIED
+        </div>
+        {% endif %}
+
+        <div class="details">
+            <div class="row"><span class="label">Vehicle Number</span> <span class="value">{{ violation[1] }}</span></div>
+            <div class="row"><span class="label">Violation Type</span> <span class="value">{{ violation[2] }}</span></div>
+            <div class="row"><span class="label">Location</span> <span class="value">{{ violation[3] }}</span></div>
+            <div class="row"><span class="label">Fine Amount</span> <span class="value" style="font-weight: bold; color: #e74c3c;">₹{{ violation[4] }}</span></div>
+            <div class="row"><span class="label">Payment Status</span>
+                <span class="value" style="color: {{ '#27ae60' if violation[5] == 'Paid' else '#e74c3c' }}; text-transform: uppercase;">
+                    {{ violation[5] }}
+                </span>
             </div>
         </div>
+
+        {% if violation[5] == 'Unpaid' %}
+        <a href="{{ url_for('pay_challan', id=violation[0]) }}" class="btn-pay">Pay Now & Verify</a>
+        {% else %}
+        <button class="btn-pay" style="background: #ecf0f1; color: #95a5a6; cursor: not-allowed;" disabled>Already Paid</button>
+        {% endif %}
+
+        <a href="/" class="btn-back">← Return to Dashboard</a>
     </div>
+</div>
+
 </body>
 </html>
